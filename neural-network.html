@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Live neural network training animation. Designed and created by Gregory Gasowski. -->
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="author" content="Gregory Gasowski" />
+	<title>Neural Network Training Demo | Gregory Gasowski</title>
+	<style>
+		html, body { margin: 0; height: 100%; overflow: hidden; }
+		body {
+			font-family: "Segoe UI", "Open Sans", Arial, sans-serif;
+			color: #fff;
+			background-color: #101826;
+			background-image: linear-gradient(rgba(16,24,38,0.74), rgba(16,24,38,0.74)), url("background.jpg");
+			background-position: center;
+			background-size: cover;
+			background-repeat: no-repeat;
+		}
+		#nn-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+		header.title { position: fixed; top: 0; left: 0; right: 0; z-index: 2; text-align: center; padding: 14px 10px 0; pointer-events: none; }
+		header.title h1 { margin: 0; font-size: 1.15em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+		header.title p.credit { display: block; margin: 2px 0 0; font-size: 0.68em; letter-spacing: 0.12em; text-transform: none; font-style: italic; opacity: 0.75; }
+		header.title p { margin: 4px 0 0; font-size: 0.72em; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; }
+
+		#nn-panel {
+			position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 2;
+			display: grid; grid-template-columns: repeat(4, 1fr) 140px; gap: 6px;
+			font-size: 10px; line-height: 1.35;
+		}
+		.step { background: rgba(16,24,38,0.72); border: 1px solid rgba(255,255,255,0.14); border-radius: 5px; padding: 6px 9px; transition: border-color .3s, box-shadow .3s, background .3s; }
+		.step h3 { margin: 0 0 2px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+		.step .eq { font-family: Consolas, "Courier New", monospace; font-size: 10px; }
+		.step .live { font-family: Consolas, "Courier New", monospace; font-size: 9.5px; opacity: 0.8; margin-top: 2px; }
+		.step.active { border-color: rgba(56,220,205,0.9); box-shadow: 0 0 18px rgba(56,220,205,0.35); background: rgba(16,30,44,0.85); }
+		#nn-step-loss.active, #nn-step-backward.active { border-color: rgba(255,170,70,0.95); box-shadow: 0 0 18px rgba(255,170,70,0.35); }
+		#nn-step-update.active { border-color: rgba(255,255,255,0.9); box-shadow: 0 0 18px rgba(255,255,255,0.3); }
+		.chart { background: rgba(16,24,38,0.72); border: 1px solid rgba(255,255,255,0.14); border-radius: 5px; padding: 6px 9px; display: flex; flex-direction: column; }
+		.chart h3 { margin: 0 0 3px; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.85; }
+		#nn-loss-chart { width: 100%; flex: 1; min-height: 28px; }
+		.legend { margin-top: 3px; font-size: 9px; opacity: 0.8; }
+		.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 3px 0 6px; vertical-align: middle; }
+
+		#nn-sound {
+			position: fixed; top: 12px; right: 12px; z-index: 4; cursor: pointer;
+			background: rgba(16,24,38,0.75); color: #fff; border: 1px solid rgba(255,255,255,0.25); border-radius: 18px;
+			padding: 6px 12px; font: 600 11px "Segoe UI", Arial, sans-serif; letter-spacing: 0.05em;
+		}
+		#nn-sound:hover { border-color: rgba(56,220,205,0.9); }
+		body { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+		#nn-tip {
+			position: fixed; z-index: 3; display: none; max-width: 460px; pointer-events: none;
+			background: rgba(10,16,26,0.94); border: 1px solid rgba(56,220,205,0.7); border-radius: 6px;
+			padding: 10px 12px; font-size: 12px; line-height: 1.55; box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+		}
+		#nn-tip b { color: #fff; }
+		#nn-tip .f { font-family: Consolas, "Courier New", monospace; color: #9ff3ea; }
+		#nn-tip .n { font-family: Consolas, "Courier New", monospace; color: #cfe3ff; font-size: 11px; }
+		#nn-tip .g { font-family: Consolas, "Courier New", monospace; color: #ffc27a; }
+		#nn-tip .muted { color: #8aa; }
+
+		@media (max-width: 900px) {
+			#nn-panel { grid-template-columns: 1fr 1fr; font-size: 9.5px; left: 8px; right: 8px; bottom: 8px; }
+			.step .live { display: none; }
+			.chart { display: none; }
+			header.title p { display: none; }
+			header.title { padding-top: 44px; }
+			#nn-sound { top: 8px; right: 8px; padding: 4px 9px; font-size: 10px; }
+		}
+	</style>
+</head>
+<body>
+	<canvas id="nn-canvas" aria-hidden="true"></canvas>
+
+	<header class="title">
+		<h1>Gregory Gasowski</h1>
+		<p class="credit">Designed and created by Gregory Gasowski</p>
+		<p>Live neural network &middot; 2 inputs &middot; 10 hidden layers &times; 5 ReLU neurons &middot; 1 output &middot; hover a neuron, drag it and let go</p>
+	</header>
+
+	<button id="nn-sound" type="button" aria-pressed="true">Sound on</button>
+	<div id="nn-tip" role="status"></div>
+
+	<section id="nn-panel" aria-label="Training steps">
+		<div class="step" id="nn-step-forward">
+			<h3>1 &middot; Forward propagation</h3>
+			<div class="eq">z = (x&#8321;&middot;w&#8321;) + (x&#8322;&middot;w&#8322;) + b &nbsp; a = ReLU(z) = max(0, z)</div>
+			<div class="live" id="nn-v-forward"></div>
+		</div>
+		<div class="step" id="nn-step-loss">
+			<h3>2 &middot; Loss calculation</h3>
+			<div class="eq">L = &frac12;(&#375; &minus; y)&sup2; &nbsp; (mean squared error)</div>
+			<div class="live" id="nn-v-loss"></div>
+		</div>
+		<div class="step" id="nn-step-backward">
+			<h3>3 &middot; Backpropagation</h3>
+			<div class="eq">&delta; = &part;L/&part;z (chain rule) &nbsp; &part;L/&part;w = &delta; &middot; a<sub>prev</sub></div>
+			<div class="live" id="nn-v-backward"></div>
+		</div>
+		<div class="step" id="nn-step-update">
+			<h3>4 &middot; Optimization (SGD)</h3>
+			<div class="eq">w &larr; w &minus; &eta; &middot; &part;L/&part;w &nbsp; b &larr; b &minus; &eta; &middot; &delta;</div>
+			<div class="live" id="nn-v-update"></div>
+		</div>
+		<div class="chart">
+			<h3>Training loss</h3>
+			<canvas id="nn-loss-chart"></canvas>
+			<div class="legend"><span class="dot" style="background:#38dccd"></span>+w <span class="dot" style="background:#5aaaff"></span>&minus;w <span class="dot" style="background:#ffaa46"></span>gradient</div>
+		</div>
+	</section>
+
+	<script src="neural-network.js"></script>
+</body>
+</html>
