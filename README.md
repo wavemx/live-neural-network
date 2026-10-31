@@ -6,7 +6,7 @@
 
 A neural network that trains live in the browser while you watch. Every forward pass, loss calculation, backpropagation step and weight update is real math, animated as it happens. Hover any neuron to see its actual calculation with the current numbers.
 
-![Live neural network training animation](docs/preview.png)
+![Live neural network training animation](docs/live-neural-network-preview.png)
 
 ## Highlights
 
