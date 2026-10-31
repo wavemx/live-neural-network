@@ -2,6 +2,8 @@
 
 **Designed and created by Gregory Gasowski** · [gregorygasowski.github.io](https://gregorygasowski.github.io)
 
+### ▶ [Live demo: wavemx.github.io/live-neural-network/neural-network.html](https://wavemx.github.io/live-neural-network/neural-network.html)
+
 A neural network that trains live in the browser while you watch. Every forward pass, loss calculation, backpropagation step and weight update is real math, animated as it happens. Hover any neuron to see its actual calculation with the current numbers.
 
 ![Live neural network training animation](docs/preview.png)
@@ -19,7 +21,7 @@ A neural network that trains live in the browser while you watch. Every forward 
 
 ## Run it
 
-Download or clone the repository and open `neural-network.html` in any modern browser.
+Try the **[live demo](https://wavemx.github.io/live-neural-network/neural-network.html)**, or download or clone the repository and open `neural-network.html` in any modern browser.
 
 ```
 git clone https://github.com/wavemx/live-neural-network.git
@@ -33,6 +35,8 @@ git clone https://github.com/wavemx/live-neural-network.git
 | `neural-network.js` | The model, training, animation, interaction and sound |
 | `background.jpg` | Background photo |
 | `neural-network-explained.md` | Full explanation of every part, the math behind it, and the reasoning for each design choice |
+| `index.html` | Opens the demo when visiting the site root |
+| `LICENSE` | MIT License |
 
 ## How it works
 
@@ -41,6 +45,10 @@ See **[neural-network-explained.md](neural-network-explained.md)** for the confi
 ## Customize
 
 All settings are in the `CONFIG` object at the top of `neural-network.js`: number of layers and neurons, learning rate, animation speed, and the function the network learns.
+
+## License
+
+[MIT](LICENSE) © 2026 Gregory Gasowski. You are free to use, modify and share this project, as long as the copyright notice and license are kept, which credits the original author.
 
 ---
 
